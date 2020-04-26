@@ -1,0 +1,45 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: il-tekton-ci-role
+rules:
+# Permissions for every EventListener deployment to function
+- apiGroups: ["triggers.tekton.dev"]
+  resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
+  verbs: ["get"]
+- apiGroups: [""]
+  # secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
+  resources: ["configmaps", "secrets", "serviceaccounts"]
+  verbs: ["get", "list", "watch"]
+# Permissions to create resources in associated TriggerTemplates
+- apiGroups: ["tekton.dev"]
+  resources: ["pipelineruns", "pipelineresources", "taskruns"]
+  verbs: ["create"]
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: il-tekton-ci-secret
+type: Opaque
+stringData:
+  secretToken: "123intel"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: il-tekton-ci-sa
+secrets:
+  - name: il-tekton-ci-secret
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: il-tekton-ci-role-binding
+subjects:
+- kind: ServiceAccount
+  name: il-tekton-ci-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: il-tekton-ci-role
+
