@@ -1,7 +1,7 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: il-gitlab-echo-template
+  name: il-github-echo-template
 spec:
   params:
     - name: gitrevision
@@ -10,7 +10,7 @@ spec:
     - apiVersion: tekton.dev/v1alpha1
       kind: TaskRun
       metadata:
-        generateName: il-gitlab-run-
+        generateName: il-github-run-
       spec:
         taskSpec:
           inputs:
@@ -36,40 +36,40 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
-  name: il-gitlab-push-binding
+  name: il-github-push-binding
 spec:
   params:
-    - name: gitrevision
-      value: $(body.checkout_sha)
-    - name: gitrepositoryurl
-      value: $(body.repository.git_http_url)
+  - name: gitrevision
+    value: $(body.head_commit.id)
+  - name: gitrepositoryurl
+    value: $(body.repository.clone_url)
+  - name: docker-tag
+    value: $(body.repository.name):$(body.head_commit.id)
+  - name: event-type
+    value: $(header.X-Github-Event)
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: il-gitlab-secret
+  name: il-github-secret
 type: Opaque
 stringData:
-  gitlabToken: 123intel
+  githubToken: 123intel
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: il-gitlab-listener
+  name: il-github-listener
 spec:
   # from examples/role-resources/servicaccount.yaml
   serviceAccountName: il-tekton-ci-sa
   triggers:
-    - name: il-gitlab-push-events-trigger
+    - name: il-github-push-events-trigger
       interceptors:
-        - gitlab:
-            secretRef:
-              secretName: il-gitlab-secret
-              secretKey: gitlabToken
-            eventTypes:
-              - Push Hook  # Only push events
+        - github:
+            eventTypes: ["push"]  # Only push events
       bindings:
-        - name: il-gitlab-push-binding
+        - name: il-github-push-binding
       template:
-        name: il-gitlab-echo-template
+        name: il-github-echo-template
   serviceType: NodePort
