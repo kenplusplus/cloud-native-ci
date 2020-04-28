@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: task-package-build
+spec:
+  resources:
+    inputs:
+    - name: source
+      type: git
+  steps:
+    - name: mock-build
+      image: 192.168.0.6:83/il-ci/il-package-builder
+      env:
+      - name: "PACKAGE"
+        value: "linux-sgx-driver"
+      - name: "http_proxy"
+        value: "http://192.168.0.4:8118"
+      - name: "https_proxy"
+        value: "http://192.168.0.4:8118"
+      - name: "no_proxy"
+        value: "127.0.0.1,localhost,192.168.0.6"
+      script: |
+        #! /bin/bash
+        echo $(inputs.resources.source.path)
+        ls -al $(inputs.resources.source.path)
+        /usr/bin/mock-build.sh
+      securityContext:
+        runAsUser: 0
+        privileged: true        
+      volumeMounts:
+        - name: cache
+          mountPath: /opt/cache
+        - name: buildroot
+          mountPath: /workspace/build
+  volumes:
+    - name: cache
+      emptyDir: {}
+    - name: buildroot
+      emptyDir: {}
+---
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: taskrun-build-package-
+spec:
+  taskRef:
+    name: task-package-build
+  resources:
+    inputs:
+    - name: source
+      resourceSpec:
+        type: git
+        params:
+          - name: revision
+            value: master
+          - name: url
+            value: https://github.com/kenplusplus/centos-repo
+    
