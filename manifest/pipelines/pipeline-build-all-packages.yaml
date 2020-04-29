@@ -8,11 +8,16 @@ spec:
     type: git
   params:
   - name: http_proxy
-    default: "http://child-prc.intel.com:913"
+    description: http_proxy for container and mock
+    type: string
   - name: https_proxy
-    default: "https://child-prc.intel.com:913"
+    description: https_proxy for container and mock
+    type: string
   - name: no_proxy
-    default: 127.0.0.1,localhost,.intel.com
+    description: no_proxy for container and mock
+    type: string
+  - name: registry
+    description: registry mirror for container image
   tasks:
   - name: build-linux-sgx-driver
     taskRef:
@@ -30,6 +35,8 @@ spec:
       value: $(params.https_proxy)
     - name: no_proxy
       value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)
   - name: build-linux-sgx-sdk
     taskRef:
       name: task-package-build
@@ -46,6 +53,8 @@ spec:
       value: $(params.https_proxy)
     - name: no_proxy
       value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)
   - name: build-glibc-intel-avx
     taskRef:
       name: task-package-build
@@ -62,6 +71,8 @@ spec:
       value: $(params.https_proxy)
     - name: no_proxy
       value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)
   - name: build-phoronix-test-suite
     taskRef:
       name: task-package-build
@@ -78,3 +89,5 @@ spec:
       value: $(params.https_proxy)
     - name: no_proxy
       value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)

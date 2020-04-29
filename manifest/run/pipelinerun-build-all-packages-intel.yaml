@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: repo-master-git
+  namespace: default
+spec:
+  type: git
+  params:
+  - name: url
+    value: https://github.intel.com/intel-base-linux-repo/centos-repo.git
+  - name: revision
+    value: master
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: pipelinerun-build-all-packages
+spec:
+  pipelineRef:
+    name: pipeline-build-all-packages
+  resources:
+  - name: centorepo-git
+    resourceRef:
+      name: repo-master-git
+  params:
+    - name: http_proxy
+      value: "http://child-prc.intel.com:913"
+    - name: https_proxy
+      value: "https://child-prc.intel.com:913"
+    - name: no_proxy
+      value: "127.0.0.1,localhost,intel.com"
+    - name: registry
+      value: "il-prc-pub.sh.intel.com:31007/baserepo"
