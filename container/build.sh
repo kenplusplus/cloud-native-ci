@@ -4,6 +4,7 @@ curr_dir=$(readlink -f $(dirname "${BASH_SOURCE[0]}"))
 action="all"
 registry=""
 container="all"
+domain="china"
 tag="latest"
 
 function usage {
@@ -12,6 +13,7 @@ usage: $(basename "$0") [OPTION]...
     -a <build|publish|save|all>  all is default, which not include save. Please execute save explicity if need.
     -r <registry prefix> the prefix string for registry
     -c <pkg|all> the container to be built and published
+    -d <china|intel> the domain for container/mock running, used for configurations of yum.conf
     -g <tag> container image tag
 EOM
     exit 0
@@ -23,6 +25,7 @@ function process_args {
             a) action=${OPTARG};;
             r) registry=${OPTARG};;
             c) container=${OPTARG};;
+            d) domain=${OPTARG};;
             g) tag=${OPTARG};;
             h) usage;;
         esac
@@ -39,6 +42,13 @@ function process_args {
         :
     else
         echo "invalid container name: $container"
+        usage
+    fi
+
+    if [[ "$domain" =~ ^(china|intel) ]]; then
+        cp $curr_dir/package-builder/intel-linux-centos.cfg.$domain $curr_dir/package-builder/intel-linux-centos.cfg
+    else
+        echo "invalid domain name: $container"
         usage
     fi
 

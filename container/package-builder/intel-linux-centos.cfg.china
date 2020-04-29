@@ -1,0 +1,66 @@
+config_opts['root'] = 'intel-linux-centos'
+config_opts['target_arch'] = 'x86_64'
+config_opts['legal_host_arches'] = ('x86_64',)
+config_opts['chroot_setup_cmd'] = 'install tar gcc-c++ redhat-rpm-config redhat-release which xz sed make bzip2 gzip gcc coreutils unzip shadow-utils diffutils cpio bash gawk rpm-build info patch util-linux findutils grep'
+config_opts['dist'] = 'intel-linux-centos'  # only useful for --resultdir variable subst
+config_opts['releasever'] = '8'
+config_opts['package_manager'] = 'dnf'
+config_opts['extra_chroot_dirs'] = [ '/run/lock', ]
+config_opts['dnf_vars'] = { 'stream': '8-stream',
+                            'contentdir': 'centos',
+                          }
+
+config_opts['yum.conf'] = """
+[main]
+keepcache=1
+debuglevel=2
+reposdir=/dev/null
+logfile=/var/log/yum.log
+retries=20
+obsoletes=1
+gpgcheck=0
+assumeyes=1
+syslog_ident=mock
+syslog_device=
+mdpolicy=group:primary
+best=1
+protected_packages=
+module_platform_id=platform:el8
+
+[Stream-BaseOS]
+name=CentOS-Stream - Base
+baseurl=http://mirrors.aliyun.com/centos/8-stream/BaseOS/$basearch/os/
+failovermethod=priority
+gpgkey=file:///usr/share/distribution-gpg-keys/centos/RPM-GPG-KEY-CentOS-Official
+gpgcheck=1
+skip_if_unavailable=False
+
+[Stream-AppStream]
+name=CentOS-Stream - AppStream
+baseurl=http://mirrors.aliyun.com/centos/8-stream/AppStream/$basearch/os/
+gpgcheck=1
+enabled=1
+gpgkey=file:///usr/share/distribution-gpg-keys/centos/RPM-GPG-KEY-CentOS-Official
+
+[Stream-extras]
+name=CentOS-Stream - Extras
+baseurl=http://mirrors.aliyun.com/centos/8-stream/extras/$basearch/os/
+gpgcheck=1
+enabled=1
+gpgkey=file:///usr/share/distribution-gpg-keys/centos/RPM-GPG-KEY-CentOS-Official
+
+[Stream-PowerTools]
+name=CentOS-Stream - PowerTools
+baseurl=http://mirrors.aliyun.com/centos/8-stream/PowerTools/$basearch/os/
+gpgcheck=1
+enabled=1
+gpgkey=file:///usr/share/distribution-gpg-keys/centos/RPM-GPG-KEY-CentOS-Official
+
+[epel]
+name=Extra Packages for Enterprise Linux $releasever - $basearch
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/$releasever/Everything/$basearch
+enabled=1
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8
+
+"""
