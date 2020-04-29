@@ -7,7 +7,7 @@ spec:
   type: git
   params:
   - name: url
-    value: https://github.com/kenplusplus/centos-repo
+    value: https://github.intel.com/intel-base-linux-repo/centos-repo
   - name: revision
     value: master
 ---
@@ -32,7 +32,7 @@ spec:
       type: git
   steps:
   - name: pre-build-check
-    image: 192.168.0.6:83/il-ci/il-package-builder
+    image: bluewish/il-package-builder
     env:
       - name: "http_proxy"
         value: $(params.http_proxy)
@@ -49,7 +49,7 @@ spec:
       echo $no_proxy
       echo "package for build: $(params.package-for-build)"
   - name: mock-build
-    image: 192.168.0.6:83/il-ci/il-package-builder
+    image: bluewish/il-package-builder
     env:
     - name: "PACKAGE"
       value: "$(params.package-for-build)"
@@ -85,11 +85,11 @@ spec:
     type: git
   params:
   - name: http_proxy
-    default: "http://192.168.0.4:8118"
+    default: "http://child-prc.intel.com:913"
   - name: https_proxy
-    default: "https://192.168.0.4:8118"
+    default: "https://child-prc.intel.com:913"
   - name: no_proxy
-    default: 127.0.0.1,localhost,192.168.0.6
+    default: 127.0.0.1,localhost,.intel.com
   tasks:
   - name: build-linux-sgx-driver
     taskRef:
