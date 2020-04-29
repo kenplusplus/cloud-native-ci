@@ -1,0 +1,46 @@
+
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline-build-all-packages
+spec:
+  resources:
+  - name: centorepo-git
+    type: git
+  params:
+    - name: http_proxy
+      default: "http://192.168.0.4:8118"
+    - name: https_proxy
+      default: "https://192.168.0.4:8118"
+    - name: no_proxy
+      default: 127.0.0.1,localhost,192.168.0.6
+  tasks:
+  - name: build-linux-sgx-driver
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: linux-sgx-driver
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+  - name: build-linux-sgx-sdk
+    taskRef:
+      name: task-package-build
+    params:
+    - name: package-for-build
+      value: linux-sgx-sdk
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+    
