@@ -20,7 +20,7 @@ EOM
 }
 
 function process_args {
-    while getopts ":a:r:c:g:h" option; do
+    while getopts ":a:r:c:d:g:h" option; do
         case "${option}" in
             a) action=${OPTARG};;
             r) registry=${OPTARG};;
