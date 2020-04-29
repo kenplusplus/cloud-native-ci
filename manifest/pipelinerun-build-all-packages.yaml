@@ -32,12 +32,12 @@ spec:
       type: git
   steps:
   - name: pre-build-check
-    image: bluewish/il-package-builder
+    image: il-prc-pub.sh.intel.com:31007/baserepo/il-package-builder
     env:
       - name: "http_proxy"
         value: $(params.http_proxy)
       - name: "https_proxy"
-        value: $(https_proxy)
+        value: $(params.https_proxy)
       - name: "no_proxy"
         value: $(params.no_proxy)
     script: |
@@ -49,14 +49,14 @@ spec:
       echo $no_proxy
       echo "package for build: $(params.package-for-build)"
   - name: mock-build
-    image: bluewish/il-package-builder
+    image: il-prc-pub.sh.intel.com:31007/baserepo/il-package-builder
     env:
     - name: "PACKAGE"
       value: "$(params.package-for-build)"
     - name: "http_proxy"
       value: $(params.http_proxy)
     - name: "https_proxy"
-      value: $(https_proxy)
+      value: $(params.https_proxy)
     - name: "no_proxy"
       value: $(params.no_proxy)
     command:
