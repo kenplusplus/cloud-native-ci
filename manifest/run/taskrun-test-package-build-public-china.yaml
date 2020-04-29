@@ -17,10 +17,12 @@ spec:
             value: https://github.com/kenplusplus/centos-repo
   params:
     - name: package-for-build
-      value: linux-sgx-driver
+      value: linux-sgx-sdk
     - name: http_proxy
       value: "http://192.168.0.4:8118"
     - name: https_proxy
       value: "https://192.168.0.4:8118"
     - name: no_proxy
-      value: 127.0.0.1,localhost,192.168.0.6
+      value: "127.0.0.1,localhost,192.168.0.6"
+    - name: registry
+      value: "bluewish"

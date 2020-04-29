@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: repo-master-git
+  namespace: default
+spec:
+  type: git
+  params:
+  - name: url
+    value: https://github.intel.com/intel-base-linux-repo/centos-repo
+  - name: revision
+    value: master
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: pipelinerun-build-all-packages
+spec:
+  pipelineRef:
+    name: pipeline-build-all-packages
+  resources:
+  - name: centorepo-git
+    resourceRef:
+      name: repo-master-git

@@ -1,0 +1,80 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline-build-all-packages
+spec:
+  resources:
+  - name: centorepo-git
+    type: git
+  params:
+  - name: http_proxy
+    default: "http://child-prc.intel.com:913"
+  - name: https_proxy
+    default: "https://child-prc.intel.com:913"
+  - name: no_proxy
+    default: 127.0.0.1,localhost,.intel.com
+  tasks:
+  - name: build-linux-sgx-driver
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: linux-sgx-driver
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+  - name: build-linux-sgx-sdk
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: linux-sgx-sdk
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+  - name: build-glibc-intel-avx
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: glibc-intel-avx
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+  - name: build-phoronix-test-suite
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: phoronix-test-suite
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
