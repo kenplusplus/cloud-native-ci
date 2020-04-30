@@ -6,6 +6,8 @@ spec:
   resources:
   - name: centorepo-git
     type: git
+  workspaces:  
+  - name: output_repo
   params:
   - name: http_proxy
     description: http_proxy for container and mock
@@ -26,6 +28,9 @@ spec:
       inputs:
       - name: source
         resource: centorepo-git
+    workspaces:  
+    - name: output
+      workspace: output_repo
     params:
     - name: package-for-build
       value: linux-sgx-driver
@@ -55,6 +60,9 @@ spec:
       value: $(params.no_proxy)
     - name: registry
       value: $(params.registry)
+    workspaces:  
+    - name: output
+      workspace: output_repo
   - name: build-glibc-intel-avx
     taskRef:
       name: task-package-build
@@ -73,6 +81,9 @@ spec:
       value: $(params.no_proxy)
     - name: registry
       value: $(params.registry)
+    workspaces:  
+    - name: output
+      workspace: output_repo
   - name: build-phoronix-test-suite
     taskRef:
       name: task-package-build
@@ -91,3 +102,20 @@ spec:
       value: $(params.no_proxy)
     - name: registry
       value: $(params.registry)
+    workspaces:  
+    - name: output
+      workspace: output_repo
+  - name: publish-repo
+    runAfter:
+      - build-linux-sgx-driver
+      - build-linux-sgx-sdk
+      - build-glibc-intel-avx
+      - build-phoronix-test-suite
+    params:
+    - name: registry
+      value: $(params.registry)
+    taskRef:
+      name: task-publish-base-repo
+    workspaces:
+    - name: base-repo-dir
+      workspace: output_repo

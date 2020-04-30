@@ -23,6 +23,8 @@ spec:
     inputs:
     - name: source
       type: git
+  workspaces:
+    - name: output
   steps:
   - name: pre-build-check
     image: $(params.registry)/il-package-builder
@@ -35,11 +37,12 @@ spec:
         value: $(params.no_proxy)
     script: |
       #! /bin/bash
-      echo "=> Build Package: $(params.package-for-build) ..."
-      echo "   http_proxy: $(params.http_proxy)"
-      echo "   https_proxy: $(params.https_proxy)"
-      echo "   no_proxy: $(params.no_proxy)"
-      echo "   registry: $(params.registry)"
+      echo "=> Build Package  : $(params.package-for-build) ..."
+      echo "   http_proxy     : $(params.http_proxy)"
+      echo "   https_proxy    : $(params.https_proxy)"
+      echo "   no_proxy       : $(params.no_proxy)"
+      echo "   registry       : $(params.registry)"
+      echo "   output path    : $(workspaces.output.path)"
       echo ""
       echo "   Source Path: $(inputs.resources.source.path)"
       echo "   Git URL    : $(inputs.resources.source.url)"
@@ -70,10 +73,20 @@ spec:
     volumeMounts:
     - name: cache
       mountPath: /opt/cache
-    - name: buildroot
+    - name: build
+      mountPath: /workspace/build
+  - name: publish
+    image: $(params.registry)/il-package-builder
+    script: |
+      #! /bin/bash
+      ls /workspace/build/$(params.package-for-build)
+      cp /workspace/build/$(params.package-for-build)/result/*.rpm $(workspaces.output.path)
+      ls $(workspaces.output.path)
+    volumeMounts:
+    - name: build
       mountPath: /workspace/build
   volumes:
   - name: cache
     emptyDir: {}
-  - name: buildroot
+  - name: build
     emptyDir: {}

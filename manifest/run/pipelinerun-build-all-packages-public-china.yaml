@@ -11,6 +11,18 @@ spec:
   - name: revision
     value: master
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: base-repo-dir
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
@@ -18,15 +30,19 @@ metadata:
 spec:
   pipelineRef:
     name: pipeline-build-all-packages
+  workspaces:  
+  - name: output_repo
+    persistentVolumeClaim:
+      claimName: base-repo-dir
   resources:
   - name: centorepo-git
     resourceRef:
       name: repo-master-git
   params:
     - name: http_proxy
-      value: "http://192.168.0.4:8118"
+      value: ""
     - name: https_proxy
-      value: "https://192.168.0.4:8118"
+      value: ""
     - name: no_proxy
       value: "127.0.0.1,localhost,192.168.0.6"
     - name: registry

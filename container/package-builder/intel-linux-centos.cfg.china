@@ -58,7 +58,7 @@ gpgkey=file:///usr/share/distribution-gpg-keys/centos/RPM-GPG-KEY-CentOS-Officia
 
 [epel-mirror]
 name=Extra Packages for Enterprise Linux 8 - $basearch
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/8/Everything/$basearch
+baseurl=http://mirrors.tuna.tsinghua.edu.cn/epel/8/Everything/$basearch
 failovermethod=priority
 enabled=1
 gpgcheck=0
