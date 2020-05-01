@@ -1,0 +1,133 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: review-pipeline-binding
+spec:
+  params:
+  - name: gitrevision
+    value: $(body.pull_request.head.sha)
+  - name: gitrepositoryurl
+    value: $(body.pull_request.head.repo.clone_url)
+  - name: prurl
+    value: $(body.pull_request.html_url)
+  - name: repo
+    value: $(body.pull_request.base.repo.full_name)
+  - name: source
+    value: github
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: run-full-test-on-pull-request
+spec:
+  inputs:
+    resources:
+    - name: repo
+      type: git
+    - name: pr
+      type: pullRequest
+  outputs:
+    resources:
+    - name: pr
+      type: pullRequest
+  steps:
+  - name: set
+    image: ubuntu
+    command: ["/bin/bash"]
+    args:
+    - -ce
+    - |
+        set -e
+        ls /workspace/pr
+        cat /workspace/pr/pr.json
+
+        # Get the PR number from the PR URL.
+        prurl="$(inputs.resources.pr.url)"
+        prNum=$(echo "$prurl" | awk -F/ '{print $NF}')
+
+        echo ""
+        echo "PR URL: $prurl"
+        echo "PR Number: $prNum"
+        cp -r /workspace/pr/ /workspace/output/
+        ls /workspace/pr/comments
+        echo "Haha, This is Ken's CI Robot! I have done full CI validation on tekton cluster, now just auto generate this message to say done~~~" > /workspace/pr/comments/new
+        echo "Haha, This is Ken's CI Robot! I have done full CI validation on tekton cluster, now just auto generate this message to say done~~~" > /workspace/output/pr/comments/new
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: review-pipeline-template
+spec:
+  params:
+  - name: gitrevision
+    description: The git revision
+    default: master
+  - name: gitrepositoryurl
+    description: The git repository url
+  - name: prurl
+    description: The url to the PR
+  - name: repo
+    description: The repo to the PR
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1alpha1
+      kind: PipelineResource
+      metadata:
+        name: git-source-$(uid)
+      spec:
+        type: git
+        params:
+        - name: revision
+          value: $(params.gitrevision)
+        - name: url
+          value: $(params.gitrepositoryurl)
+    - apiVersion: tekton.dev/v1alpha1
+      kind: PipelineResource
+      metadata:
+        name: pr-$(uid)
+      spec:
+        type: pullRequest
+        params:
+        - name: url
+          value: $(params.prurl)
+        secrets:
+        - secretName: github-token
+          secretKey: token
+          fieldName: authToken
+    - apiVersion: tekton.dev/v1alpha1
+      kind: TaskRun
+      metadata:
+        generateName: run-full-test-on-pull-request-
+      spec:
+        taskRef:
+          name: run-full-test-on-pull-request
+        inputs:
+          resources:
+            - name: repo
+              resourceRef:
+                name: git-source-$(uid)
+            - name: pr
+              resourceRef:
+                name: pr-$(uid)
+        outputs:
+          resources:
+            - name: pr
+              resourceRef:
+                name: pr-$(uid)
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: listener-interceptor
+spec:
+  serviceType: NodePort
+  serviceAccountName: il-tekton-ci-sa
+  triggers:
+    - name: pr-trig
+      interceptors:
+        - github:
+            eventTypes: 
+              - pull_request
+      bindings:
+        - name: review-pipeline-binding
+      template:
+        name: review-pipeline-template
