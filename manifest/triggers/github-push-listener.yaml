@@ -59,7 +59,7 @@ stringData:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: il-github-listener
+  name: il-github-push
 spec:
   # from examples/role-resources/servicaccount.yaml
   serviceAccountName: il-tekton-ci-sa

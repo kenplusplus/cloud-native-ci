@@ -12,6 +12,8 @@ spec:
     value: $(body.pull_request.html_url)
   - name: repo
     value: $(body.pull_request.base.repo.full_name)
+  - name: action
+    value: $(body.action)
   - name: source
     value: github
 ---
@@ -20,6 +22,9 @@ kind: Task
 metadata:
   name: run-full-test-on-pull-request
 spec:
+  params:
+  - name: action
+    type: string
   inputs:
     resources:
     - name: repo
@@ -38,7 +43,12 @@ spec:
     - -ce
     - |
         set -e
-        ls /workspace/pr
+        echo "action       : $(params.action)"
+        echo "git repo url : $(inputs.resources.repo.url)"
+        echo "git revision : $(inputs.resources.repo.revision)"
+        echo "pr url       : $(inputs.resources.pr.url)"
+        echo ""
+
         cat /workspace/pr/pr.json
 
         # Get the PR number from the PR URL.
@@ -46,12 +56,15 @@ spec:
         prNum=$(echo "$prurl" | awk -F/ '{print $NF}')
 
         echo ""
-        echo "PR URL: $prurl"
-        echo "PR Number: $prNum"
+
         cp -r /workspace/pr/ /workspace/output/
-        ls /workspace/pr/comments
-        echo "Haha, This is Ken's CI Robot! I have done full CI validation on tekton cluster, now just auto generate this message to say done~~~" > /workspace/pr/comments/new
-        echo "Haha, This is Ken's CI Robot! I have done full CI validation on tekton cluster, now just auto generate this message to say done~~~" > /workspace/output/pr/comments/new
+        if [[ "$(params.action)" =~ ^(reopened|opened) ]]; then
+          echo "PR URL: $prurl"
+          echo "PR Number: $prNum"
+          echo "Thanks for your PR, this is Tekton Robot!" > /workspace/output/pr/comments/new
+        else
+          echo "Unknown action: $(params.action)"
+        fi
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
@@ -60,14 +73,11 @@ metadata:
 spec:
   params:
   - name: gitrevision
-    description: The git revision
     default: master
   - name: gitrepositoryurl
-    description: The git repository url
   - name: prurl
-    description: The url to the PR
   - name: repo
-    description: The repo to the PR
+  - name: action
   resourcetemplates:
     - apiVersion: tekton.dev/v1alpha1
       kind: PipelineResource
@@ -80,6 +90,10 @@ spec:
           value: $(params.gitrevision)
         - name: url
           value: $(params.gitrepositoryurl)
+        - name: httpProxy
+          value: "http://192.168.0.4:8118"
+        - name: httpsProxy
+          value: "http://192.168.0.4:8118"
     - apiVersion: tekton.dev/v1alpha1
       kind: PipelineResource
       metadata:
@@ -90,7 +104,7 @@ spec:
         - name: url
           value: $(params.prurl)
         secrets:
-        - secretName: github-token
+        - secretName: il-github-token
           secretKey: token
           fieldName: authToken
     - apiVersion: tekton.dev/v1alpha1
@@ -100,6 +114,9 @@ spec:
       spec:
         taskRef:
           name: run-full-test-on-pull-request
+        params:
+        - name: action
+          value: $(params.action)
         inputs:
           resources:
             - name: repo
@@ -117,7 +134,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: listener-interceptor
+  name: il-github-pr
 spec:
   serviceType: NodePort
   serviceAccountName: il-tekton-ci-sa

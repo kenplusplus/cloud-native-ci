@@ -12,7 +12,7 @@ function usage {
 usage: $(basename "$0") [OPTION]...
     -a <build|publish|save|all>  all is default, which not include save. Please execute save explicity if need.
     -r <registry prefix> the prefix string for registry
-    -c <pkg|all> the container to be built and published
+    -c <pkg|bridge|all> the container to be built and published
     -d <china|intel> the domain for container/mock running, used for configurations of yum.conf
     -g <tag> container image tag
 EOM
@@ -38,7 +38,7 @@ function process_args {
         usage
     fi
 
-    if [[ "$container" =~ ^(pkg|all) ]]; then
+    if [[ "$container" =~ ^(pkg|bridge|all) ]]; then
         :
     else
         echo "invalid container name: $container"
@@ -69,6 +69,18 @@ function build_images {
             . \
             -t ${registry}/il-package-builder:${tag}
     fi
+ 
+    if [[ "$container" =~ ^(bridge|all) ]]; then
+        echo "Build webhook bridge container..."
+        cd $curr_dir/webhook-bridge
+        sudo docker build \
+            --build-arg http_proxy=$http_proxy \
+            --build-arg https_proxy=$https_proxy \
+            --build-arg no_proxy=$no_proxy \
+            . \
+            -t ${registry}/il-webhook-bridge:${tag}
+    fi
+
 }
 
 function publish_images {
@@ -76,6 +88,12 @@ function publish_images {
         echo "Publish package-builder container ..."
         sudo docker push ${registry}/il-package-builder:${tag}
     fi
+
+    if [[ "$container" =~ ^(bridge|all) ]]; then
+        echo "Publish webhook-bridge container ..."
+        sudo docker push ${registry}/il-webhook-bridge:${tag}
+    fi
+
 }
 
 function save_images {
@@ -85,6 +103,12 @@ function save_images {
         echo "Save package-builder container ..."
         sudo docker save ${registry}/il-package-builder:${tag} | gzip > ${curr_dir}/${registry}/il-package-builder-${tag}.tgz
     fi
+
+    if [[ "$container" =~ ^(bridge|all) ]]; then
+        echo "Save webhook bridge container ..."
+        sudo docker save ${registry}/il-webhook-bridge:${tag} | gzip > ${curr_dir}/${registry}/il-package-builder-${tag}.tgz
+    fi
+
 }
 
 process_args "$@"

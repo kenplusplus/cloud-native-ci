@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-push-webhook-bridge-deployment
+spec:
+  selector:
+    matchLabels:
+      app: github-push-webhook-bridge
+  template:
+    metadata:
+      labels:
+        app: github-push-webhook-bridge
+    spec:
+      containers:
+      - name: il-webhook-bridge
+        image: bluewish/il-webhook-bridge
+        env: 
+        - name: DOMAIN
+          value: github-push
+        - name: TARGET
+          value: http://el-il-github-push:8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-pr-webhook-bridge-deployment
+spec:
+  selector:
+    matchLabels:
+      app: github-pr-webhook-bridge
+  template:
+    metadata:
+      labels:
+        app: github-pr-webhook-bridge
+    spec:
+      containers:
+      - name: il-webhook-bridge
+        image: bluewish/il-webhook-bridge
+        env: 
+        - name: DOMAIN
+          value: github-pr
+        - name: TARGET
+          value: http://el-il-github-pr:8080
