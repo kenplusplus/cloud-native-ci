@@ -42,11 +42,5 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: il-tekton-ci-role
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: il-github-token
-type: Opaque
-stringData:
-  token: "f21177445edd98d05e50b2888ed752e1b204a97f"
+
+

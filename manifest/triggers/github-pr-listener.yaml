@@ -66,6 +66,14 @@ spec:
           echo "Unknown action: $(params.action)"
         fi
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: il-github-pr-token
+type: Opaque
+stringData:
+  token: "f21177445edd98d05e50b2888ed752e1b204a97f"
+---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
@@ -104,7 +112,7 @@ spec:
         - name: url
           value: $(params.prurl)
         secrets:
-        - secretName: il-github-token
+        - secretName: il-github-pr-token
           secretKey: token
           fieldName: authToken
     - apiVersion: tekton.dev/v1alpha1
