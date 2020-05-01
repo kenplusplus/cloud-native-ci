@@ -1,0 +1,49 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: task-feedback-pr
+spec:
+  params:
+  - name: action
+    type: string
+  - name: message
+    type: string
+  resources:
+    inputs:
+    - name: repo
+      type: git
+    - name: pr
+      type: pullRequest
+    outputs:
+    - name: pr
+      type: pullRequest
+  steps:
+  - name: set
+    image: ubuntu
+    command: ["/bin/bash"]
+    args:
+    - -ce
+    - |
+        set -e
+        echo "action       : $(params.action)"
+        echo "git repo url : $(inputs.resources.repo.url)"
+        echo "git revision : $(inputs.resources.repo.revision)"
+        echo "pr url       : $(inputs.resources.pr.url)"
+        echo ""
+
+        cat /workspace/pr/pr.json
+
+        # Get the PR number from the PR URL.
+        prurl="$(inputs.resources.pr.url)"
+        prNum=$(echo "$prurl" | awk -F/ '{print $NF}')
+
+        echo ""
+
+        cp -r /workspace/pr/ /workspace/output/
+        if [[ "$(params.action)" =~ ^(reopened|opened) ]]; then
+          echo "PR URL: $prurl"
+          echo "PR Number: $prNum"
+          echo "$(params.message)" > /workspace/output/pr/comments/new
+        else
+          echo "Unknown action: $(params.action)"
+        fi

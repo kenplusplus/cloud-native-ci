@@ -17,62 +17,13 @@ spec:
   - name: source
     value: github
 ---
-apiVersion: tekton.dev/v1alpha1
-kind: Task
-metadata:
-  name: run-full-test-on-pull-request
-spec:
-  params:
-  - name: action
-    type: string
-  inputs:
-    resources:
-    - name: repo
-      type: git
-    - name: pr
-      type: pullRequest
-  outputs:
-    resources:
-    - name: pr
-      type: pullRequest
-  steps:
-  - name: set
-    image: ubuntu
-    command: ["/bin/bash"]
-    args:
-    - -ce
-    - |
-        set -e
-        echo "action       : $(params.action)"
-        echo "git repo url : $(inputs.resources.repo.url)"
-        echo "git revision : $(inputs.resources.repo.revision)"
-        echo "pr url       : $(inputs.resources.pr.url)"
-        echo ""
-
-        cat /workspace/pr/pr.json
-
-        # Get the PR number from the PR URL.
-        prurl="$(inputs.resources.pr.url)"
-        prNum=$(echo "$prurl" | awk -F/ '{print $NF}')
-
-        echo ""
-
-        cp -r /workspace/pr/ /workspace/output/
-        if [[ "$(params.action)" =~ ^(reopened|opened) ]]; then
-          echo "PR URL: $prurl"
-          echo "PR Number: $prNum"
-          echo "Thanks for your PR, this is Tekton Robot!" > /workspace/output/pr/comments/new
-        else
-          echo "Unknown action: $(params.action)"
-        fi
----
 apiVersion: v1
 kind: Secret
 metadata:
   name: il-github-pr-token
 type: Opaque
 stringData:
-  token: "f21177445edd98d05e50b2888ed752e1b204a97f"
+  token: "0c1c8b53cdd43516002e24b1de2bf43b6f432baa"
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
@@ -116,28 +67,33 @@ spec:
           secretKey: token
           fieldName: authToken
     - apiVersion: tekton.dev/v1alpha1
-      kind: TaskRun
+      kind: PipelineRun
       metadata:
-        generateName: run-full-test-on-pull-request-
+        generateName: run-pipeline-verify-pr-
       spec:
-        taskRef:
-          name: run-full-test-on-pull-request
+        pipelineRef:
+          name: pipeline-verify-pr
         params:
-        - name: action
+        - name: http_proxy
+          value: "http://192.168.0.4:8118"
+        - name: https_proxy
+          value: "http://192.168.0.4:8118"
+        - name: no_proxy
+          value: 127.0.0.1,localhost,192.168.0.6
+        - name: registry
+          value: bluewish
+        - name: pr-action
           value: $(params.action)
-        inputs:
-          resources:
-            - name: repo
-              resourceRef:
-                name: git-source-$(uid)
-            - name: pr
-              resourceRef:
-                name: pr-$(uid)
-        outputs:
-          resources:
-            - name: pr
-              resourceRef:
-                name: pr-$(uid)
+        resources:
+        - name: centorepo-git
+          resourceRef:
+            name: git-source-$(uid)
+        - name: pr-for-verify
+          resourceRef:
+            name: pr-$(uid)
+        workspaces:
+        - name: output_repo
+          emptyDir: {}
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener

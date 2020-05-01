@@ -1,0 +1,150 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline-verify-pr
+spec:
+  resources:
+  - name: centorepo-git
+    type: git
+  - name: pr-for-verify
+    type: pullRequest
+  workspaces:  
+  - name: output_repo
+  params:
+  - name: http_proxy
+    description: http_proxy for container and mock
+    type: string
+  - name: https_proxy
+    description: https_proxy for container and mock
+    type: string
+  - name: no_proxy
+    description: no_proxy for container and mock
+    type: string
+  - name: registry
+    description: registry mirror for container image
+  - name: pr-action
+    type: string
+  tasks:
+  - name: feedback-pr-start
+    taskRef:
+      name: task-feedback-pr
+    params:
+    - name: action
+      value: $(params.pr-action)
+    - name: message
+      value: "Tekton Robot: Thank for PR, build verify start~~!"
+    resources:
+      inputs:
+        - name: repo
+          resource: centorepo-git
+        - name: pr
+          resource: pr-for-verify
+      outputs:
+        - name: pr
+          resource: pr-for-verify
+  - name: build-linux-sgx-driver
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    workspaces:  
+    - name: output
+      workspace: output_repo
+    params:
+    - name: package-for-build
+      value: linux-sgx-driver
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)
+  - name: build-linux-sgx-sdk
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: linux-sgx-sdk
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)
+    workspaces:  
+    - name: output
+      workspace: output_repo
+  - name: build-glibc-intel-avx
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: glibc-intel-avx
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)
+    workspaces:  
+    - name: output
+      workspace: output_repo
+  - name: build-phoronix-test-suite
+    taskRef:
+      name: task-package-build
+    resources:
+      inputs:
+      - name: source
+        resource: centorepo-git
+    params:
+    - name: package-for-build
+      value: phoronix-test-suite
+    - name: http_proxy
+      value: $(params.http_proxy)
+    - name: https_proxy
+      value: $(params.https_proxy)
+    - name: no_proxy
+      value: $(params.no_proxy)
+    - name: registry
+      value: $(params.registry)
+    workspaces:  
+    - name: output
+      workspace: output_repo
+  - name: feedback-pr-end
+    taskRef:
+      name: task-feedback-pr
+    runAfter:
+      - build-linux-sgx-driver
+      - build-linux-sgx-sdk
+      - build-glibc-intel-avx
+      - build-phoronix-test-suite
+    params:
+    - name: action
+      value: $(params.pr-action)
+    - name: message
+      value: "Tekton Robot: build verify complete!"
+    resources:
+      inputs:
+        - name: repo
+          resource: centorepo-git
+        - name: pr
+          resource: pr-for-verify
+      outputs:
+        - name: pr
+          resource: pr-for-verify
