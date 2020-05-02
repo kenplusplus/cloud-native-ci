@@ -76,11 +76,12 @@ spec:
     - name: build
       mountPath: /workspace/build
   - name: publish
-    image: $(params.registry)/il-package-builder
+    image: ubuntu
     script: |
       #! /bin/bash
       ls /workspace/build/$(params.package-for-build)
       cp /workspace/build/$(params.package-for-build)/result/*.rpm $(workspaces.output.path)
+      chmod 777 $(workspaces.output.path)
       ls $(workspaces.output.path)
     volumeMounts:
     - name: build

@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: centos-base-repo-dir-pvc
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  nginx.conf: |
+    events {
+      worker_connections 768;
+    }
+    http {
+      access_log /var/log/nginx/access.log combined;
+      server {
+        root /var/www/html;
+        location / {
+            autoindex on;
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: centos-base-repo-nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: centos-base-repo-nginx
+  template:
+    metadata:
+      labels:
+        app: centos-base-repo-nginx
+    spec:
+      containers:
+      - name: centos-base-repo-nginx
+        image: nginx:1.17
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/nginx
+          readOnly: true
+          name: nginx-conf
+        - mountPath: /var/www/html
+          name: repo-dir
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf
+      - name: repo-dir
+        persistentVolumeClaim:
+          claimName: centos-base-repo-dir-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: centos-base-repo-nginx-service
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: centos-base-repo-nginx
+  type: NodePort

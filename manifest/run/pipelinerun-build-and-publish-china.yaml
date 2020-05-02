@@ -11,18 +11,6 @@ spec:
   - name: revision
     value: master
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: base-repo-dir
-spec:
-  resources:
-    requests:
-      storage: 1Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
----
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
@@ -33,7 +21,7 @@ spec:
   workspaces:  
   - name: output_repo
     persistentVolumeClaim:
-      claimName: base-repo-dir
+      claimName: centos-base-repo-dir-pvc
   resources:
   - name: centorepo-git
     resourceRef:
