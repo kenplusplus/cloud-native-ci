@@ -27,9 +27,9 @@ config_opts['plugin_conf']['ccache_enable'] = True \n\
 config_opts['plugin_conf']['ccache_opts']['max_cache_size'] = '8G' \n\
 config_opts['plugin_conf']['ccache_opts']['compress'] = None \n\
 config_opts['plugin_conf']['ccache_opts']['dir'] = '/opt/cache/ccache' \n\
-config_opts['http_proxy'] = '' \n\
-config_opts['https_proxy'] = '' \n\
-config_opts['no_proxy'] = '' " >> /etc/mock/site-defaults.cfg
+config_opts['http_proxy'] = '$http_proxy' \n\
+config_opts['https_proxy'] = '$https_proxy' \n\
+config_opts['no_proxy'] = '$no_proxy' " >> /etc/mock/site-defaults.cfg
 
 RUN useradd -u 1000 builder && usermod -a -G mock builder
 

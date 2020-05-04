@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: repo-master-git
-  namespace: default
+  namespace: base-repo-ci
 spec:
   type: git
   params:
@@ -15,9 +15,14 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   name: pipelinerun-build-all-packages
+  namespace: base-repo-ci
 spec:
   pipelineRef:
     name: pipeline-build-all-packages
+  workspaces:
+  - name: output_repo
+    persistentVolumeClaim:
+      claimName: centos-base-repo-dir-pvc
   resources:
   - name: centorepo-git
     resourceRef:

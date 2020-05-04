@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: task-package-build
+  namespace: base-repo-ci
 spec:
   params:
   - name: package-for-build
@@ -76,7 +77,7 @@ spec:
     - name: build
       mountPath: /workspace/build
   - name: publish
-    image: ubuntu
+    image: alpine:3.11
     script: |
       #! /bin/bash
       ls /workspace/build/$(params.package-for-build)

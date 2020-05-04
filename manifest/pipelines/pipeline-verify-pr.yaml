@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: pipeline-verify-pr
+  namespace: base-repo-ci
 spec:
   resources:
   - name: centorepo-git

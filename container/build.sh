@@ -62,7 +62,7 @@ function build_images {
     if [[ "$container" =~ ^(pkg|all) ]]; then
         echo "Build package-builder container..."
         cd $curr_dir/package-builder
-        sudo docker build \
+        sudo -E docker build \
             --no-cache \
             --build-arg http_proxy=$http_proxy \
             --build-arg https_proxy=$https_proxy \
@@ -74,7 +74,7 @@ function build_images {
     if [[ "$container" =~ ^(bridge|all) ]]; then
         echo "Build webhook bridge container..."
         cd $curr_dir/webhook-bridge
-        sudo docker build \
+        sudo -E docker build \
             --no-cache \
             --build-arg http_proxy=$http_proxy \
             --build-arg https_proxy=$https_proxy \
