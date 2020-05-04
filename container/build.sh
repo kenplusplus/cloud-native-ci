@@ -63,6 +63,7 @@ function build_images {
         echo "Build package-builder container..."
         cd $curr_dir/package-builder
         sudo docker build \
+            --no-cache \
             --build-arg http_proxy=$http_proxy \
             --build-arg https_proxy=$https_proxy \
             --build-arg no_proxy=$no_proxy \
@@ -74,6 +75,7 @@ function build_images {
         echo "Build webhook bridge container..."
         cd $curr_dir/webhook-bridge
         sudo docker build \
+            --no-cache \
             --build-arg http_proxy=$http_proxy \
             --build-arg https_proxy=$https_proxy \
             --build-arg no_proxy=$no_proxy \
