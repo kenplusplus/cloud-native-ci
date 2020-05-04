@@ -1,8 +1,18 @@
 From centos:8.1.1911
 
+RUN echo -e "\n\
+[epel] \n\
+name=Extra Packages for Enterprise Linux $releasever - $basearch \n\
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/epel/8/Everything/x86_64 \n\
+        https://download.fedoraproject.org/pub/epel/8/Everything/x86_64 \n\
+        https://linux-ftp.sh.intel.com/pub/mirrors/fedora-epel/8/Everything/x86_64/ \n\
+enabled=1 \n\
+gpgcheck=1 \n\
+gpgkey=https://mirrors.tuna.tsinghua.edu.cn/epel/RPM-GPG-KEY-EPEL-8 \n\
+" >> /etc/yum.repos.d/epel.repo
+
 RUN yum -y --setopt="tsflags=nodocs" update
-RUN yum -y --setopt="tsflags=nodocs" install epel-release && \
-    yum -y --setopt="tsflags=nodocs" install mock rpmdevtools wget
+RUN yum -y --setopt="tsflags=nodocs" install mock rpmdevtools wget
 RUN yum clean all && rm -rf /var/cache/yum/
 
 
