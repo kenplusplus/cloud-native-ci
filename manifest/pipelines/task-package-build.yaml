@@ -79,7 +79,7 @@ spec:
   - name: publish
     image: alpine:3.11
     script: |
-      #! /bin/bash
+      #! /bin/sh
       ls /workspace/build/$(params.package-for-build)
       cp /workspace/build/$(params.package-for-build)/result/*.rpm $(workspaces.output.path)
       chmod 777 $(workspaces.output.path)
