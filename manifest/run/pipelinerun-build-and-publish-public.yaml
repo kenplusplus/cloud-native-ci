@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: repo-master-git
-  namespace: default
+  namespace: base-repo-ci
 spec:
   type: git
   params:
@@ -15,10 +15,11 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   name: pipelinerun-build-all-packages
+  namespace: base-repo-ci
 spec:
   pipelineRef:
     name: pipeline-build-all-packages
-  workspaces:  
+  workspaces:
   - name: output_repo
     persistentVolumeClaim:
       claimName: centos-base-repo-dir-pvc
@@ -32,6 +33,6 @@ spec:
     - name: https_proxy
       value: ""
     - name: no_proxy
-      value: "127.0.0.1,localhost,192.168.0.6"
+      value: ""
     - name: registry
       value: "bluewish"
