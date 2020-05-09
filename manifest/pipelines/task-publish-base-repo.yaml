@@ -10,7 +10,7 @@ spec:
   - name: registry
   steps:
   - name: createrepo
-    image: $(params.registry)/il-package-builder
+    image: $(params.registry)/il-pkg-build
     script: |
       #! /bin/bash
       ls $(workspaces.base-repo-dir.path)
