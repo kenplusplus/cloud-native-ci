@@ -73,7 +73,7 @@ spec:
     image: alpine:3.11
     script: |
       #! /bin/sh
-      cp /workspace/build/$(params.package-for-build)/result/*.rpm $(workspaces.output.path)
+      cp /build/$(params.package-for-build)/result/*.rpm $(workspaces.output.path)
       chmod 777 $(workspaces.output.path)
     volumeMounts:
     - name: build
